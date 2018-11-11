@@ -43,10 +43,21 @@ namespace Postmark.Tests
             {   
                 var location = Path.GetFullPath(AssemblyLocation);
                 var pathComponents = location.Split(Path.DirectorySeparatorChar).ToList();
+                var rootPath = Path.DirectorySeparatorChar.ToString();
+
+                // Add an exclusion for the first \ of a Windows path like c:\
+                // Path.Combine will incorrectly reassembling this, see https://stackoverflow.com/questions/48382183/path-combine-behaviour-with-drive-letters
+                if (location.Length > 3 && location[1] == ':' && location[2] == '\\')
+                {
+                    rootPath = location.Substring(0, 3);
+                    pathComponents.RemoveAt(0);
+                }
+
                 var componentsCount = pathComponents.Count;
                 var keyPath = "";
+                
                 while(componentsCount > 0){
-                    keyPath = Path.Combine(new string[]{ Path.DirectorySeparatorChar.ToString() }
+                    keyPath = Path.Combine(new string[] { rootPath }
                         .Concat(pathComponents.Take(componentsCount)
                         .Concat(new string[] { "testing_keys.json" })).ToArray());
                     if(File.Exists(keyPath)){
